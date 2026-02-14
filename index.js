@@ -1,20 +1,95 @@
+const canvas = document.getElementById('meme-canvas');
+const ctx = canvas.getContext('2d');
+const imageUpload = document.getElementById('image-upload');
+const topTextInput = document.getElementById('top-text');
+const bottomTextInput = document.getElementById('bottom-text');
 
-const quotes = [
-	"You got to motivate yourself! Nobody else is going to do it for you!",
-	"Don’t let anybody tell you you can’t do something. If you got a dream, protect it.",
-	"Every setback is a setup for a comeback!",
-	"Stay positive, stay motivated, and keep hustling!",
-	"If you want something, go get it. Period.",
-	"Success doesn’t come to you, you go to it!"
-];
+const bgColorPicker = document.getElementById('bg-color-picker');
+const downloadBtn = document.getElementById('download-btn');
 
-const quoteEl = document.getElementById('meme-quote');
-const btn = document.getElementById('new-quote-btn');
+let image = null;
+let bgColor = bgColorPicker ? bgColorPicker.value : '#e0e7ff';
 
-btn.addEventListener('click', () => {
-	let newQuote;
-	do {
-		newQuote = quotes[Math.floor(Math.random() * quotes.length)];
-	} while (quoteEl.textContent.trim() === newQuote && quotes.length > 1);
-	quoteEl.textContent = newQuote;
+
+function drawMeme() {
+	// Clear canvas
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	// Draw background color
+	ctx.fillStyle = bgColor;
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	// Draw image if loaded
+	if (image) {
+		// Fit image to canvas
+		const ratio = Math.min(canvas.width / image.width, canvas.height / image.height);
+		const newWidth = image.width * ratio;
+		const newHeight = image.height * ratio;
+		const x = (canvas.width - newWidth) / 2;
+		const y = (canvas.height - newHeight) / 2;
+		ctx.drawImage(image, x, y, newWidth, newHeight);
+	} else {
+		// Placeholder text
+		ctx.fillStyle = '#6c63ff';
+		ctx.font = 'bold 1.5rem Montserrat, Arial, sans-serif';
+		ctx.textAlign = 'center';
+		ctx.fillText('Upload an image to start', canvas.width / 2, canvas.height / 2);
+		return;
+	}
+
+	// Draw top text
+	drawText(topTextInput.value, canvas.width / 2, 50, 'top');
+	// Draw bottom text
+	drawText(bottomTextInput.value, canvas.width / 2, canvas.height - 30, 'bottom');
+}
+if (bgColorPicker) {
+	bgColorPicker.addEventListener('input', (e) => {
+		bgColor = e.target.value;
+		drawMeme();
+	});
+}
+
+
+function drawText(text, x, y, position) {
+	if (!text) return;
+	ctx.save();
+	const maxWidth = canvas.width - 40; // 20px padding each side
+	let fontSize = 44;
+	ctx.font = `bold ${fontSize}px Montserrat, Arial, sans-serif`;
+	// Shrink font until text fits
+	while (ctx.measureText(text.toUpperCase()).width > maxWidth && fontSize > 16) {
+		fontSize -= 2;
+		ctx.font = `bold ${fontSize}px Montserrat, Arial, sans-serif`;
+	}
+	ctx.textAlign = 'center';
+	ctx.lineWidth = Math.max(4, fontSize / 8);
+	ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+	ctx.fillStyle = '#fff';
+	ctx.textBaseline = position === 'top' ? 'top' : 'bottom';
+	ctx.strokeText(text.toUpperCase(), x, y);
+	ctx.fillText(text.toUpperCase(), x, y);
+	ctx.restore();
+}
+
+imageUpload.addEventListener('change', (e) => {
+	const file = e.target.files[0];
+	if (!file) return;
+	const reader = new FileReader();
+	reader.onload = function (event) {
+		image = new window.Image();
+		image.onload = drawMeme;
+		image.src = event.target.result;
+	};
+	reader.readAsDataURL(file);
 });
+
+topTextInput.addEventListener('input', drawMeme);
+bottomTextInput.addEventListener('input', drawMeme);
+
+downloadBtn.addEventListener('click', () => {
+	const link = document.createElement('a');
+	link.download = 'motivation-meme.png';
+	link.href = canvas.toDataURL('image/png');
+	link.click();
+});
+
+// Initial draw
+drawMeme();
