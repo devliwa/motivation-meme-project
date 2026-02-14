@@ -3,20 +3,13 @@ const ctx = canvas.getContext('2d');
 const imageUpload = document.getElementById('image-upload');
 const topTextInput = document.getElementById('top-text');
 const bottomTextInput = document.getElementById('bottom-text');
-
-const bgColorPicker = document.getElementById('bg-color-picker');
 const downloadBtn = document.getElementById('download-btn');
 
 let image = null;
-let bgColor = bgColorPicker ? bgColorPicker.value : '#e0e7ff';
-
 
 function drawMeme() {
 	// Clear canvas
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	// Draw background color
-	ctx.fillStyle = bgColor;
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	// Draw image if loaded
 	if (image) {
 		// Fit image to canvas
@@ -27,7 +20,9 @@ function drawMeme() {
 		const y = (canvas.height - newHeight) / 2;
 		ctx.drawImage(image, x, y, newWidth, newHeight);
 	} else {
-		// Placeholder text
+		// Placeholder background
+		ctx.fillStyle = '#e0e7ff';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
 		ctx.fillStyle = '#6c63ff';
 		ctx.font = 'bold 1.5rem Montserrat, Arial, sans-serif';
 		ctx.textAlign = 'center';
@@ -39,12 +34,6 @@ function drawMeme() {
 	drawText(topTextInput.value, canvas.width / 2, 50, 'top');
 	// Draw bottom text
 	drawText(bottomTextInput.value, canvas.width / 2, canvas.height - 30, 'bottom');
-}
-if (bgColorPicker) {
-	bgColorPicker.addEventListener('input', (e) => {
-		bgColor = e.target.value;
-		drawMeme();
-	});
 }
 
 
@@ -61,8 +50,8 @@ function drawText(text, x, y, position) {
 	}
 	ctx.textAlign = 'center';
 	ctx.lineWidth = Math.max(4, fontSize / 8);
-	ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-	ctx.fillStyle = '#fff';
+	ctx.strokeStyle = 'rgba(30, 64, 175, 0.7)'; // blue outline
+	ctx.fillStyle = '#2563eb'; // blue fill
 	ctx.textBaseline = position === 'top' ? 'top' : 'bottom';
 	ctx.strokeText(text.toUpperCase(), x, y);
 	ctx.fillText(text.toUpperCase(), x, y);
